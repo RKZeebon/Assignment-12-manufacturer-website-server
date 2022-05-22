@@ -20,6 +20,7 @@ async function run() {
         await client.connect();
         const toolsCollection = client.db('masonTools').collection('tools')
         const ordersCollection = client.db('masonTools').collection('orders')
+        const reviewsCollection = client.db('masonTools').collection('reviews')
 
         app.get('/tools', async (req, res) => {
             const tools = await toolsCollection.find().toArray()
@@ -57,6 +58,17 @@ async function run() {
             const id = req.params.id
             const q = { _id: ObjectId(id) }
             const result = await ordersCollection.deleteOne(q)
+            res.send(result)
+        })
+
+        app.get('/reviews', async (req, res) => {
+            const tools = await reviewsCollection.find().toArray()
+
+            res.send(tools)
+        })
+        app.post('/review', async (req, res) => {
+            const doc = req.body
+            const result = await reviewsCollection.insertOne(doc)
             res.send(result)
         })
 
