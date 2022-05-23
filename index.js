@@ -1,6 +1,7 @@
 const express = require('express')
 const cors = require('cors');
 require('dotenv').config();
+const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express()
 const port = process.env.PORT || 5000
@@ -13,6 +14,20 @@ const uri = `mongodb+srv://${process.env.DB_User}:${process.env.DB_Pass}@cluster
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 
+function verifyJwt(req, res, next) {
+    const authorization = req.headers.authorization;
+    if (!authorization) {
+        return res.status(401).send({ message: "Unauthorized Access" })
+    }
+    jwt.verify(authorization, process.env.ACCESS_TOKEN, function (err, decoded) {
+        if (err) {
+            return res.status(403).send({ message: "Forbidden Access" })
+        }
+        req.decoded = decoded;
+        next()
+    });
+
+}
 
 
 async function run() {
@@ -41,11 +56,18 @@ async function run() {
             const result = await ordersCollection.insertOne(doc)
             res.send(result)
         })
-        app.get('/myorders', async (req, res) => {
+        app.get('/myorders', verifyJwt, async (req, res) => {
             const email = req.query.email
-            const q = { email }
-            const result = await ordersCollection.find(q).toArray()
-            res.send(result)
+            const decodedmail = req.decoded.email
+            if (email === decodedmail) {
+                const q = { email }
+                const result = await ordersCollection.find(q).toArray()
+                res.send(result)
+            }
+            else {
+                return res.status(403).send({ message: "Forbidden Access" })
+            }
+
         })
 
         app.get('/myorder/:id', async (req, res) => {
@@ -82,8 +104,8 @@ async function run() {
                 $set: user,
             };
             const result = await usersCollection.updateOne(filter, updateDoc, options)
-
-            res.send(result)
+            const token = jwt.sign({ email }, process.env.ACCESS_TOKEN);
+            res.send({ result, token })
         })
 
 
