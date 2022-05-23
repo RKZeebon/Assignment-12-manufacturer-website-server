@@ -108,8 +108,34 @@ async function run() {
             res.send({ result, token })
         })
 
+        app.get('/user', async (req, res) => {
+            const email = req.query.email
+            const q = { email }
+            const result = await usersCollection.findOne(q)
 
-    } finally {
+            res.send(result)
+
+        })
+
+        app.put('/user', async (req, res) => {
+            const email = req.query.email
+            const q = { email }
+            const userData = req.body;
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: userData,
+            };
+            const result = await usersCollection.updateOne(q, updateDoc, options)
+            res.send(result)
+
+        })
+
+
+
+
+
+    }
+    finally {
         // await client.close();
     }
 }
