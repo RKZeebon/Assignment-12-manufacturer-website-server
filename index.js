@@ -21,6 +21,7 @@ async function run() {
         const toolsCollection = client.db('masonTools').collection('tools')
         const ordersCollection = client.db('masonTools').collection('orders')
         const reviewsCollection = client.db('masonTools').collection('reviews')
+        const usersCollection = client.db('masonTools').collection('users')
 
         app.get('/tools', async (req, res) => {
             const tools = await toolsCollection.find().toArray()
@@ -69,6 +70,19 @@ async function run() {
         app.post('/review', async (req, res) => {
             const doc = req.body
             const result = await reviewsCollection.insertOne(doc)
+            res.send(result)
+        })
+
+        app.put('/user/:email', async (req, res) => {
+            const email = req.params.email
+            const user = req.body;
+            const filter = { email }
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: user,
+            };
+            const result = await usersCollection.updateOne(filter, updateDoc, options)
+
             res.send(result)
         })
 
