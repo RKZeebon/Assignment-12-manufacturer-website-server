@@ -151,6 +151,19 @@ async function run() {
             res.send(result)
         })
 
+        app.get('/allUser', verifyJwt, async (req, res) => {
+            const email = req.headers.email
+            const decodedmail = req.decoded.email
+            if (email === decodedmail) {
+                const users = await usersCollection.find().toArray()
+                res.send(users)
+            }
+            else {
+                return res.status(403).send({ message: "Forbidden Access" })
+            }
+        })
+
+
     }
     finally {
         // await client.close();
