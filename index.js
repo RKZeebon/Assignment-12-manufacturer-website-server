@@ -89,6 +89,7 @@ async function run() {
 
             res.send(tools)
         })
+
         app.post('/review', async (req, res) => {
             const doc = req.body
             const result = await reviewsCollection.insertOne(doc)
@@ -144,7 +145,11 @@ async function run() {
 
 
 
-
+        app.post('/addTool', async (req, res) => {
+            const doc = req.body
+            const result = await toolsCollection.insertOne(doc)
+            res.send(result)
+        })
 
     }
     finally {
