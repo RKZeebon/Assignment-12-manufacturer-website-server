@@ -51,11 +51,31 @@ async function run() {
             res.send(tool)
         })
 
+        app.put('/tool/:id', async (req, res) => {
+            const id = req.params.id;
+            const q = { _id: ObjectId(id) }
+            const options = { upsert: true };
+            const data = req.body;
+            const updateDoc = {
+                $set: data,
+            };
+            const result = await toolsCollection.updateOne(q, updateDoc, options)
+            res.send(result)
+        })
+
+        app.delete('/tool/:id', async (req, res) => {
+            const id = req.params.id;
+            const q = { _id: ObjectId(id) }
+            const result = await toolsCollection.deleteOne(q)
+            res.send(result)
+        })
+
         app.post('/orders', async (req, res) => {
             const doc = req.body
             const result = await ordersCollection.insertOne(doc)
             res.send(result)
         })
+
         app.get('/myorders', verifyJwt, async (req, res) => {
             const email = req.query.email
             const decodedmail = req.decoded.email
@@ -85,9 +105,9 @@ async function run() {
         })
 
         app.get('/reviews', async (req, res) => {
-            const tools = await reviewsCollection.find().toArray()
+            const reviews = await reviewsCollection.find().toArray()
 
-            res.send(tools)
+            res.send(reviews)
         })
 
         app.post('/review', async (req, res) => {
@@ -162,6 +182,7 @@ async function run() {
                 return res.status(403).send({ message: "Forbidden Access" })
             }
         })
+
 
 
     }
