@@ -130,6 +130,18 @@ async function run() {
 
         })
 
+        app.get('/orders', verifyJwt, async (req, res) => {
+            const email = req.headers.email
+            const decodedmail = req.decoded.email
+            if (email === decodedmail) {
+                const orders = await ordersCollection.find().toArray()
+                res.send(orders)
+            }
+            else {
+                return res.status(403).send({ message: "Forbidden Access" })
+            }
+        })
+
 
 
 
