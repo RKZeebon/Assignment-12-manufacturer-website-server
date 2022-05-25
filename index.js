@@ -3,6 +3,10 @@ const cors = require('cors');
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const stripe = require("stripe")(process.env.Stripe_Key);
+
+
+
 const app = express()
 const port = process.env.PORT || 5000
 
@@ -181,6 +185,48 @@ async function run() {
             else {
                 return res.status(403).send({ message: "Forbidden Access" })
             }
+        })
+
+
+        app.post('/create-payment-intent', async (req, res) => {
+            const { totalDue } = req.body
+            const amount = parseFloat(totalDue) * 100
+
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: 'usd',
+                payment_method_types: ['card']
+            });
+
+            res.send({ clientSecret: paymentIntent.client_secret })
+
+        })
+
+        app.put('/order/:id', async (req, res) => {
+            const id = req.params.id
+            const filter = { _id: ObjectId(id) }
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: {
+                    payment: true,
+                    totalDue: 0
+                }
+            };
+            const result = await ordersCollection.updateOne(filter, updateDoc, options)
+            res.send(result)
+        })
+
+        app.put('/shipping/:id', async (req, res) => {
+            const id = req.params.id
+            const filter = { _id: ObjectId(id) }
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: {
+                    shipped: true,
+                }
+            };
+            const result = await ordersCollection.updateOne(filter, updateDoc, options)
+            res.send(result)
         })
 
 
