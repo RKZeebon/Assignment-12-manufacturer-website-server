@@ -74,7 +74,7 @@ async function run() {
             res.send(result)
         })
 
-        app.post('/orders', async (req, res) => {
+        app.post('/order', async (req, res) => {
             const doc = req.body
             const result = await ordersCollection.insertOne(doc)
             res.send(result)
@@ -205,11 +205,14 @@ async function run() {
         app.put('/order/:id', async (req, res) => {
             const id = req.params.id
             const filter = { _id: ObjectId(id) }
+            const data = req.body
+            const trnsactionId = data.trnsactionId
             const options = { upsert: true };
             const updateDoc = {
                 $set: {
                     payment: true,
-                    totalDue: 0
+                    totalDue: 0,
+                    trnsactionId
                 }
             };
             const result = await ordersCollection.updateOne(filter, updateDoc, options)
